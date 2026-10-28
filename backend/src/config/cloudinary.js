@@ -1,5 +1,9 @@
 const { v2: cloudinary } = require('cloudinary');
 
+for (const name of ['CLOUDINARY_CLOUD_NAME', 'CLOUDINARY_API_KEY', 'CLOUDINARY_API_SECRET', 'CLOUDINARY_FOLDER']) {
+  if (!process.env[name]) throw new Error(`${name} environment variable required hai`);
+}
+
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
   api_key: process.env.CLOUDINARY_API_KEY,
@@ -11,7 +15,7 @@ cloudinary.config({
 function uploadBuffer(buffer, options = {}) {
   return new Promise((resolve, reject) => {
     const stream = cloudinary.uploader.upload_stream(
-      { folder: process.env.CLOUDINARY_FOLDER || 'my-app', resource_type: 'image', ...options },
+      { folder: process.env.CLOUDINARY_FOLDER, resource_type: 'image', ...options },
       (err, result) => (err ? reject(err) : resolve(result))
     );
     stream.end(buffer);

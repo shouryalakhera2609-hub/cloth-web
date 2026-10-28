@@ -36,8 +36,11 @@ function createFreshLayout(items) {
   sessionStorage.setItem('collection-layout-order', displayItems.map((item) => item._id || item.productNumber).join('|'));
 }
 
-async function request(path, options) {
-  const res = await fetch(API + path, options);
+async function request(path, options = {}) {
+  const res = await fetch(API + path, {
+    ...options,
+    credentials: 'include',
+  });
   const data = await res.json().catch(() => ({}));
   if (!res.ok) throw new Error(data.message || 'Request failed');
   return data;

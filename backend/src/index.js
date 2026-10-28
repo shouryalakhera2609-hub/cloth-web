@@ -8,9 +8,20 @@ const authRoutes = require('./routes/auth').router;
 const session = require('./config/session');
 
 const app = express();
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT;
+if (!PORT) throw new Error('PORT environment variable required hai');
 
-app.use(cors({ origin: process.env.CLIENT_URL || 'http://localhost:5173' }));
+if (!process.env.CLIENT_URL) throw new Error('CLIENT_URL environment variable required hai');
+const allowedOrigins = process.env.CLIENT_URL.split(',').map((origin) => origin.trim()).filter(Boolean);
+
+app.set('trust proxy', 1);
+app.use(cors({
+  origin(origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) return callback(null, true);
+    return callback(new Error('Origin allowed nahi hai'));
+  },
+  credentials: true,
+}));
 app.use(express.json());
 app.use(session);
 

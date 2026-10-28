@@ -1,12 +1,14 @@
 const express = require('express');
 const router = express.Router();
-const User = require('../models/User');
 
-// Hardcoded user for demo
 const DEMO_USER = {
-  email: 'shouryalakhera2609@gmail.com',
-  password: '123456@',
+  email: process.env.ADMIN_EMAIL,
+  password: process.env.ADMIN_PASSWORD,
 };
+
+if (!DEMO_USER.email || !DEMO_USER.password) {
+  throw new Error('ADMIN_EMAIL aur ADMIN_PASSWORD environment variables required hain');
+}
 
 // Login route
 router.post('/login', async (req, res) => {
