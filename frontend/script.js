@@ -1,5 +1,37 @@
 const API = window.API_URL || '/api';
 
+(function startWelcomeSplash() {
+  const splash = document.getElementById('welcome-splash');
+  const countdown = document.getElementById('splash-countdown');
+  const ring = splash?.querySelector('.countdown-ring');
+  if (!splash || !countdown || !ring) return;
+
+  let seconds = 5;
+  countdown.textContent = seconds;
+  ring.setAttribute('aria-label', `Opening in ${seconds} seconds`);
+
+  const timer = window.setInterval(() => {
+    seconds -= 1;
+    if (seconds > 0) {
+      countdown.textContent = seconds;
+      ring.setAttribute('aria-label', `Opening in ${seconds} seconds`);
+      countdown.classList.remove('count-pop');
+      void countdown.offsetWidth;
+      countdown.classList.add('count-pop');
+      return;
+    }
+
+    window.clearInterval(timer);
+    countdown.textContent = '0';
+    ring.setAttribute('aria-label', 'Opening now');
+    window.setTimeout(() => {
+      splash.classList.add('is-hidden');
+      document.body.classList.remove('splash-active');
+      window.setTimeout(() => splash.remove(), 700);
+    }, 350);
+  }, 1000);
+})();
+
 function optimizedCloudinaryUrl(url) {
   if (!url.includes('/upload/')) return url;
   return url.replace('/upload/', '/upload/f_auto,q_auto:good,c_limit,w_1200,dpr_auto/');
