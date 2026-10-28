@@ -14,11 +14,18 @@ if (!DEMO_USER.email || !DEMO_USER.password) {
 router.post('/login', async (req, res) => {
   const { email, password } = req.body;
   if (email === DEMO_USER.email && password === DEMO_USER.password) {
-    // Simple session (JWT recommended for production)
     req.session.user = { email };
-    return res.json({ success: true, email });
+    return req.session.save((error) => {
+      if (error) return res.status(500).json({ success: false, message: 'Session create nahi ho saki' });
+      return res.json({ success: true, email });
+    });
   }
   return res.status(401).json({ success: false, message: 'Invalid credentials' });
+});
+
+router.get('/me', (req, res) => {
+  const loggedIn = Boolean(req.session && req.session.user && req.session.user.email === DEMO_USER.email);
+  res.json({ loggedIn, email: loggedIn ? DEMO_USER.email : null });
 });
 
 router.post('/logout', (req, res, next) => {

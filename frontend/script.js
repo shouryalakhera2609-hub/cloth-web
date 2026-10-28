@@ -303,13 +303,28 @@ const loginForm = document.getElementById('login-form');
 const loginError = document.getElementById('login-error');
 let isLoggedIn = false;
 
+function setAuthState(loggedIn) {
+  isLoggedIn = loggedIn;
+  addProductButton.hidden = !loggedIn;
+  signinButton.querySelector('span').textContent = loggedIn ? 'Logout' : 'Sign in';
+  signinButton.setAttribute('aria-label', loggedIn ? 'Logout' : 'Google sign in');
+  render();
+}
+
+async function checkLoginSession() {
+  try {
+    const result = await request('/auth/me');
+    setAuthState(Boolean(result.loggedIn));
+  } catch (error) {
+    setAuthState(false);
+  }
+}
+
 signinButton.addEventListener('click', async () => {
   if (isLoggedIn) {
     try {
       await request('/auth/logout', { method: 'POST' });
-      isLoggedIn = false;
-      addProductButton.hidden = true;
-      signinButton.querySelector('span').textContent = 'Sign in';
+      setAuthState(false);
     } catch (error) {
       showError(error.message);
     }
@@ -335,12 +350,11 @@ loginForm.addEventListener('submit', async (event) => {
       }),
     });
     loginDialog.close();
-    isLoggedIn = true;
-    addProductButton.hidden = false;
-    signinButton.querySelector('span').textContent = 'Logout';
+    loginForm.reset();
+    setAuthState(true);
   } catch (error) {
     loginError.textContent = error.message;
   }
 });
 
-loadItems();
+checkLoginSession().finally(loadItems);
