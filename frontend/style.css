@@ -25,7 +25,10 @@ body {
 }
 
 body.splash-active {
+  width: 100%;
   overflow: hidden;
+  touch-action: none;
+  overscroll-behavior: none;
 }
 
 .welcome-splash {
@@ -76,9 +79,9 @@ body.splash-active {
   place-items: center;
 }
 
-.splash-logo {
-  width: min(62vw, 230px);
-  max-height: 42vh;
+ .splash-logo {
+  width: min(82vw, 340px);
+  max-height: 58vh;
   object-fit: contain;
   border-radius: 22px;
   box-shadow: 0 18px 45px rgba(38, 91, 140, 0.22);
@@ -840,6 +843,30 @@ footer {
 }
 
 @media (max-width: 520px) {
+  .welcome-splash {
+    padding: env(safe-area-inset-top) 12px env(safe-area-inset-bottom);
+  }
+
+  .splash-content {
+    width: 100%;
+  }
+
+  .splash-logo {
+    width: min(82vw, 310px);
+    max-height: 58vh;
+  }
+
+  .splash-logo-wrap .countdown-ring {
+    width: 66px;
+    height: 66px;
+    font-size: 28px;
+  }
+
+  .splash-content h2 {
+    margin-top: 14px;
+    font-size: clamp(18px, 5.4vw, 22px);
+  }
+
   .buy-dialog-content {
     padding: 24px 16px 18px;
   }
