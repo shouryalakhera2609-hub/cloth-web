@@ -1,0 +1,12 @@
+const dns = require('dns');
+dns.setServers(['8.8.8.8', '1.1.1.1']);
+const mongoose = require('mongoose');
+
+async function connectDB() {
+  const uri = process.env.MONGODB_URI;
+  if (!uri) throw new Error('MONGODB_URI .env me set nahi hai');
+  await mongoose.connect(uri);
+  console.log(`MongoDB connected: ${mongoose.connection.host}/${mongoose.connection.name}`);
+}
+
+module.exports = connectDB;
