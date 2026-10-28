@@ -156,6 +156,17 @@ function render() {
       details.appendChild(description);
     }
 
+    const buyButton = document.createElement('button');
+    buyButton.className = 'buy-now-button';
+    buyButton.type = 'button';
+    buyButton.textContent = 'Buy Now';
+    buyButton.addEventListener('click', () => {
+      const productName = document.getElementById('buy-product-name');
+      productName.textContent = item.title ? `Interested in: ${item.title}` : 'Interested in this product?';
+      document.getElementById('buy-dialog').showModal();
+    });
+    details.appendChild(buyButton);
+
     if (isLoggedIn) {
       const actions = document.createElement('div');
       actions.className = 'product-actions';
@@ -257,6 +268,13 @@ async function compressImage(file) {
   }
   return new File([blob], file.name.replace(/\.[^.]+$/, '') + '.jpg', { type: 'image/jpeg' });
 }
+
+const buyDialog = document.getElementById('buy-dialog');
+buyDialog.querySelector('.buy-dialog-close').addEventListener('click', () => buyDialog.close());
+buyDialog.querySelector('.buy-dialog-close-action').addEventListener('click', () => buyDialog.close());
+buyDialog.addEventListener('click', (event) => {
+  if (event.target === buyDialog) buyDialog.close();
+});
 
 const productDialog = document.getElementById('product-dialog');
 const addProductButton = document.getElementById('add-product-button');

@@ -14,11 +14,13 @@
     <div id="welcome-splash" class="welcome-splash" role="dialog" aria-label="Welcome screen">
       <div class="splash-glow" aria-hidden="true"></div>
       <div class="splash-content">
-        <img class="splash-logo" src="web-lobo.jpeg" alt="Shubh Collection logo" />
-        <h2>Welcome to Shubh Collection</h2>
-        <div class="countdown-ring" aria-live="polite" aria-label="Opening in 5 seconds">
-          <span id="splash-countdown">5</span>
+        <div class="splash-logo-wrap">
+          <img class="splash-logo" src="web-lobo.jpeg" alt="Shubh Collection logo" />
+          <div class="countdown-ring" aria-live="polite" aria-label="Opening in 5 seconds">
+            <span id="splash-countdown">5</span>
+          </div>
         </div>
+        <h2>Welcome to Shubh Collection</h2>
         <p>Preparing your shopping experience...</p>
       </div>
     </div>
@@ -72,6 +74,24 @@
         <p id="error" class="error" role="alert"></p>
         <div id="items" class="grid" aria-live="polite"></div>
       </section>
+
+      <dialog id="buy-dialog" class="buy-dialog">
+        <div class="buy-dialog-content">
+          <button class="buy-dialog-close" type="button" aria-label="Close">×</button>
+          <div class="buy-icon" aria-hidden="true">🛍️</div>
+          <h2>Visit Shubh Collection</h2>
+          <p class="buy-product-name" id="buy-product-name"></p>
+          <div class="store-info">
+            <p><span>Address</span><strong>Jama Masjid ke paas,<br />Shubh Collection</strong></p>
+            <p><span>Contact</span><strong><a href="tel:+918349537392">8349537392</a></strong></p>
+          </div>
+          <p class="buy-message">For price, availability, and more information,<br />please call us or visit the store.</p>
+          <div class="buy-dialog-actions">
+            <a class="call-button" href="tel:+918349537392">📞 Call Now</a>
+            <button class="visit-button buy-dialog-close-action" type="button">Visit Now</button>
+          </div>
+        </div>
+      </dialog>
 
       <dialog id="product-dialog" class="product-dialog">
         <form id="item-form" class="product-form">
