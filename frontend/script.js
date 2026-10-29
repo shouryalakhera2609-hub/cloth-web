@@ -10,6 +10,14 @@ const API = window.API_URL || '/api';
   countdown.textContent = seconds;
   ring.setAttribute('aria-label', `Opening in ${seconds} seconds`);
 
+  const preventSplashZoom = (event) => {
+    if (event.touches?.length > 1 || event.scale && event.scale !== 1) event.preventDefault();
+  };
+  splash.addEventListener('touchmove', preventSplashZoom, { passive: false });
+  splash.addEventListener('gesturestart', preventSplashZoom, { passive: false });
+  splash.addEventListener('gesturechange', preventSplashZoom, { passive: false });
+  splash.addEventListener('gestureend', preventSplashZoom, { passive: false });
+
   const timer = window.setInterval(() => {
     seconds -= 1;
     if (seconds > 0) {
@@ -25,6 +33,10 @@ const API = window.API_URL || '/api';
     countdown.textContent = '0';
     ring.setAttribute('aria-label', 'Opening now');
     window.setTimeout(() => {
+      splash.removeEventListener('touchmove', preventSplashZoom);
+      splash.removeEventListener('gesturestart', preventSplashZoom);
+      splash.removeEventListener('gesturechange', preventSplashZoom);
+      splash.removeEventListener('gestureend', preventSplashZoom);
       splash.classList.add('is-hidden');
       document.body.classList.remove('splash-active');
       window.setTimeout(() => splash.remove(), 700);
@@ -42,11 +54,52 @@ const submitBtn = document.getElementById('submit-btn');
 const itemsEl = document.getElementById('items');
 const errorEl = document.getElementById('error');
 const searchEl = document.getElementById('search');
-const filterButtons = document.querySelectorAll('.filter-button');
+const categoryFilters = document.getElementById('category-filters');
+const categorySelect = document.getElementById('category');
 
 let allItems = [];
 let displayItems = [];
+let categories = [];
 let activeCategory = 'all';
+
+function renderCategoryControls() {
+  categoryFilters.replaceChildren();
+  const allButton = document.createElement('button');
+  allButton.className = `filter-button${activeCategory === 'all' ? ' active' : ''}`;
+  allButton.type = 'button';
+  allButton.dataset.category = 'all';
+  allButton.setAttribute('aria-pressed', String(activeCategory === 'all'));
+  allButton.textContent = 'All';
+  categoryFilters.appendChild(allButton);
+
+  categorySelect.replaceChildren();
+  for (const category of categories) {
+    const filterButton = document.createElement('button');
+    filterButton.className = `filter-button${activeCategory === category.slug ? ' active' : ''}`;
+    filterButton.type = 'button';
+    filterButton.dataset.category = category.slug;
+    filterButton.setAttribute('aria-pressed', String(activeCategory === category.slug));
+    filterButton.textContent = category.name;
+    categoryFilters.appendChild(filterButton);
+
+    const option = document.createElement('option');
+    option.value = category.slug;
+    option.textContent = category.name;
+    categorySelect.appendChild(option);
+  }
+
+  for (const button of categoryFilters.querySelectorAll('.filter-button')) {
+    button.addEventListener('click', () => {
+      activeCategory = button.dataset.category;
+      for (const filterButton of categoryFilters.querySelectorAll('.filter-button')) {
+        const isActive = filterButton === button;
+        filterButton.classList.toggle('active', isActive);
+        filterButton.setAttribute('aria-pressed', String(isActive));
+      }
+      render();
+    });
+  }
+}
 
 function shuffleItems(items) {
   const shuffled = [...items];
@@ -87,7 +140,7 @@ function render() {
   const visibleItems = displayItems.filter((item) => {
     const searchableText = `${item.title} ${item.description || ''} ${item.category || ''}`.toLowerCase();
     const matchesSearch = searchableText.includes(search);
-    const matchesCategory = activeCategory === 'all' || searchableText.includes(activeCategory);
+    const matchesCategory = activeCategory === 'all' || String(item.category || '').toLowerCase() === activeCategory;
     return matchesSearch && matchesCategory;
   });
 
@@ -208,19 +261,16 @@ async function loadItems() {
   }
 }
 
-searchEl.addEventListener('input', render);
-
-for (const button of filterButtons) {
-  button.addEventListener('click', () => {
-    activeCategory = button.dataset.category;
-    for (const filterButton of filterButtons) {
-      const isActive = filterButton === button;
-      filterButton.classList.toggle('active', isActive);
-      filterButton.setAttribute('aria-pressed', String(isActive));
-    }
-    render();
-  });
+async function loadCategories() {
+  try {
+    categories = await request('/categories');
+    renderCategoryControls();
+  } catch (error) {
+    showError(error.message);
+  }
 }
+
+searchEl.addEventListener('input', render);
 
 async function compressImage(file) {
   const image = await new Promise((resolve, reject) => {
@@ -278,6 +328,10 @@ buyDialog.addEventListener('click', (event) => {
 
 const productDialog = document.getElementById('product-dialog');
 const addProductButton = document.getElementById('add-product-button');
+const addCategoryButton = document.getElementById('add-category-button');
+const categoryDialog = document.getElementById('category-dialog');
+const categoryForm = document.getElementById('category-form');
+const categoryError = document.getElementById('category-error');
 const productNumberInput = document.getElementById('product-number');
 let editingProductId = null;
 
@@ -292,7 +346,11 @@ function resetProductForm() {
 function openEditProduct(item) {
   editingProductId = item._id;
   form.title.value = item.title || '';
-  form.category.value = item.category || 'saree';
+  if (item.category && categorySelect.querySelector(`option[value="${CSS.escape(item.category)}"]`)) {
+    form.category.value = item.category;
+  } else if (categorySelect.options.length) {
+    form.category.value = categorySelect.options[0].value;
+  }
   productNumberInput.value = item.productNumber || '';
   form.price.value = item.price || '';
   form.description.value = item.description || '';
@@ -308,6 +366,35 @@ addProductButton.addEventListener('click', async () => {
   const latestNumber = allItems.reduce((maximum, item) => Math.max(maximum, Number(item.productNumber) || 0), 0);
   productNumberInput.value = latestNumber + 1;
   productDialog.showModal();
+});
+
+addCategoryButton.addEventListener('click', () => {
+  categoryError.textContent = '';
+  categoryForm.reset();
+  categoryDialog.showModal();
+});
+document.getElementById('category-dialog-close').addEventListener('click', () => categoryDialog.close());
+categoryDialog.addEventListener('click', (event) => {
+  if (event.target === categoryDialog) categoryDialog.close();
+});
+categoryForm.addEventListener('submit', async (event) => {
+  event.preventDefault();
+  categoryError.textContent = '';
+  const submitButton = document.getElementById('category-submit');
+  submitButton.disabled = true;
+  try {
+    await request('/categories', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: categoryForm.name.value }),
+    });
+    categoryDialog.close();
+    await loadCategories();
+  } catch (error) {
+    categoryError.textContent = error.message;
+  } finally {
+    submitButton.disabled = false;
+  }
 });
 
 productDialog.querySelector('.product-dialog-close').addEventListener('click', () => productDialog.close());
@@ -356,6 +443,7 @@ let isLoggedIn = false;
 function setAuthState(loggedIn) {
   isLoggedIn = loggedIn;
   addProductButton.hidden = !loggedIn;
+  addCategoryButton.hidden = !loggedIn;
   signinButton.querySelector('span').textContent = loggedIn ? 'Logout' : 'Sign in';
   signinButton.setAttribute('aria-label', loggedIn ? 'Logout' : 'Google sign in');
   render();
@@ -407,4 +495,6 @@ loginForm.addEventListener('submit', async (event) => {
   }
 });
 
-checkLoginSession().finally(loadItems);
+checkLoginSession().finally(async () => {
+  await Promise.all([loadCategories(), loadItems()]);
+});

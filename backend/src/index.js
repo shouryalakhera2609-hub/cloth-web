@@ -5,6 +5,7 @@ const cors = require('cors');
 const connectDB = require('./config/db');
 const itemRoutes = require('./routes/items');
 const authRoutes = require('./routes/auth').router;
+const categoryRoutes = require('./routes/categories');
 const session = require('./config/session');
 
 const app = express();
@@ -28,6 +29,7 @@ app.use(session);
 app.use('/api/auth', authRoutes);
 app.get('/api/health', (req, res) => res.json({ status: 'ok' }));
 app.use('/api/items', itemRoutes);
+app.use('/api/categories', categoryRoutes);
 
 // Frontend (plain HTML/CSS/JS) ko backend se hi serve karo
 app.use(express.static(path.join(__dirname, '../../frontend')));

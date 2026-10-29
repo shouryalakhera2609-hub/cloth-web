@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta
       name="description"
       content="Explore sarees, blouses, kurtas, and daily essentials at Shubh Collection and General Store."
@@ -35,6 +35,7 @@
         </svg>
         <span>Sign in</span>
       </button>
+      <button id="add-category-button" class="add-product-button" type="button" hidden>+ Category</button>
       <button id="add-product-button" class="add-product-button" type="button" hidden>Add</button>
       <dialog id="login-dialog" class="login-dialog">
         <form id="login-form" method="dialog">
@@ -57,15 +58,10 @@
         <p class="tagline">✨ Latest Fashion &amp; Daily Needs — All in One Place ✨</p>
         <label class="search-box">
           <span class="visually-hidden">Search products</span>
-          <input id="search" type="search" placeholder="Search saree, blouse, kurta..." />
+          <input id="search" type="search" placeholder="Search products or category..." />
           <span class="search-icon" aria-hidden="true">⌕</span>
         </label>
-        <nav class="filters" aria-label="Filter products">
-          <button class="filter-button active" type="button" data-category="all" aria-pressed="true">All</button>
-          <button class="filter-button" type="button" data-category="saree" aria-pressed="false">Saree</button>
-          <button class="filter-button" type="button" data-category="blouse" aria-pressed="false">Blouse</button>
-          <button class="filter-button" type="button" data-category="kurta" aria-pressed="false">Kurta</button>
-        </nav>
+        <nav id="category-filters" class="filters" aria-label="Filter products"></nav>
       </section>
 
       <section class="collection" aria-labelledby="collection-title">
@@ -75,6 +71,17 @@
         <div id="items" class="grid" aria-live="polite"></div>
       </section>
 
+      <dialog id="category-dialog" class="login-dialog">
+        <form id="category-form" class="category-form">
+          <button id="category-dialog-close" class="dialog-close" type="button" aria-label="Close">×</button>
+          <h2>Add Category</h2>
+          <label for="category-name">Category name</label>
+          <input id="category-name" name="name" type="text" maxlength="50" placeholder="e.g. Jeans" required />
+          <p id="category-error" class="login-error" role="alert"></p>
+          <button id="category-submit" class="login-submit" type="submit">Add category</button>
+        </form>
+      </dialog>
+
       <dialog id="buy-dialog" class="buy-dialog">
         <div class="buy-dialog-content">
           <button class="buy-dialog-close" type="button" aria-label="Close">×</button>
@@ -82,7 +89,7 @@
           <h2>Visit Shubh Collection</h2>
           <p class="buy-product-name" id="buy-product-name"></p>
           <div class="store-info">
-            <p><span>Address</span><strong>Jama Masjid ke paas,<br />Shubh Collection</strong></p>
+            <p><span>Address</span><strong>Jama Masjid ke paas,<br />Shubh Collection, Salamatpur</strong></p>
             <p><span>Contact</span><strong><a href="tel:+918349537392">8349537392</a></strong></p>
           </div>
           <p class="buy-message">For price, availability, and more information,<br />please call us or visit the store.</p>
@@ -100,11 +107,7 @@
           <label for="title">Product name <span>(optional)</span></label>
           <input id="title" name="title" placeholder="e.g. Embroidered saree" />
           <label for="category">Category</label>
-          <select id="category" name="category" required>
-            <option value="saree">Saree</option>
-            <option value="blouse">Blouse</option>
-            <option value="kurta">Kurta</option>
-          </select>
+          <select id="category" name="category" required></select>
           <label for="product-number">Product number</label>
           <input id="product-number" name="productNumber" type="number" readonly />
           <label for="price">Price</label>
