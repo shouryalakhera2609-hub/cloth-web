@@ -74,13 +74,38 @@ function renderCategoryControls() {
 
   categorySelect.replaceChildren();
   for (const category of categories) {
+    const filterWrap = document.createElement('span');
+    filterWrap.className = 'category-filter-wrap';
+
     const filterButton = document.createElement('button');
     filterButton.className = `filter-button${activeCategory === category.slug ? ' active' : ''}`;
     filterButton.type = 'button';
     filterButton.dataset.category = category.slug;
     filterButton.setAttribute('aria-pressed', String(activeCategory === category.slug));
     filterButton.textContent = category.name;
-    categoryFilters.appendChild(filterButton);
+    filterWrap.appendChild(filterButton);
+
+    if (isLoggedIn) {
+      const removeButton = document.createElement('button');
+      removeButton.className = 'remove-category-button';
+      removeButton.type = 'button';
+      removeButton.textContent = '×';
+      removeButton.title = `${category.name} category remove karein`;
+      removeButton.setAttribute('aria-label', `${category.name} category remove karein`);
+      removeButton.addEventListener('click', async () => {
+        if (!window.confirm(`${category.name} category remove karni hai?`)) return;
+        try {
+          await request(`/categories/${category._id}`, { method: 'DELETE' });
+          if (activeCategory === category.slug) activeCategory = 'all';
+          await Promise.all([loadCategories(), loadItems()]);
+        } catch (error) {
+          showError(error.message);
+        }
+      });
+      filterWrap.appendChild(removeButton);
+    }
+
+    categoryFilters.appendChild(filterWrap);
 
     const option = document.createElement('option');
     option.value = category.slug;
@@ -446,6 +471,7 @@ function setAuthState(loggedIn) {
   addCategoryButton.hidden = !loggedIn;
   signinButton.querySelector('span').textContent = loggedIn ? 'Logout' : 'Sign in';
   signinButton.setAttribute('aria-label', loggedIn ? 'Logout' : 'Google sign in');
+  renderCategoryControls();
   render();
 }
 

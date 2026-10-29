@@ -1,5 +1,6 @@
 const express = require('express');
 const Category = require('../models/Category');
+const Item = require('../models/Item');
 const { requireLogin } = require('./auth');
 
 const router = express.Router();
@@ -15,6 +16,9 @@ function categorySlug(value) {
 }
 
 async function ensureDefaultCategories() {
+  const categoryCount = await Category.countDocuments();
+  if (categoryCount > 0) return;
+
   for (const name of DEFAULT_CATEGORIES) {
     await Category.updateOne(
       { slug: name },
@@ -46,6 +50,24 @@ router.post('/', requireLogin, async (req, res, next) => {
 
     const category = await Category.create({ name, slug });
     res.status(201).json(category);
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.delete('/:id', requireLogin, async (req, res, next) => {
+  try {
+    const category = await Category.findById(req.params.id);
+    if (!category) return res.status(404).json({ message: 'Category nahi mili' });
+
+    const remainingCategories = await Category.find({ _id: { $ne: category._id } }).sort({ createdAt: 1 });
+    if (remainingCategories.length === 0) {
+      return res.status(400).json({ message: 'Last category remove nahi ho sakti' });
+    }
+
+    await Item.updateMany({ category: category.slug }, { $set: { category: remainingCategories[0].slug } });
+    await category.deleteOne();
+    res.json({ message: 'Category removed', fallbackCategory: remainingCategories[0].slug });
   } catch (error) {
     next(error);
   }
