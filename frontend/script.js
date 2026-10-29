@@ -164,7 +164,10 @@ function render() {
   const search = searchEl.value.trim().toLowerCase();
   const visibleItems = displayItems.filter((item) => {
     const searchableText = `${item.title} ${item.description || ''} ${item.category || ''}`.toLowerCase();
-    const matchesSearch = searchableText.includes(search);
+    const isProductNumberSearch = /^\d+$/.test(search);
+    const matchesSearch = isProductNumberSearch
+      ? Number(item.productNumber) === Number(search)
+      : searchableText.includes(search);
     const matchesCategory = activeCategory === 'all' || String(item.category || '').toLowerCase() === activeCategory;
     return matchesSearch && matchesCategory;
   });
